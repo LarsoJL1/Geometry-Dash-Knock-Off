@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geometry Dash Clone</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        background: #0b1321;
+        color: #d9e3f0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .game-shell {
+        width: min(900px, 100%);
+        background: radial-gradient(circle at top, #1d2d44 0%, #09111f 60%, #020813 100%);
+        border: 2px solid #3d5a80;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 20px;
+        background: rgba(7, 17, 30, 0.72);
+        border-bottom: 1px solid rgba(68, 123, 195, 0.2);
+      }
+
+      .hud .title {
+        font-size: 1.1rem;
+        letter-spacing: 0.08em;
+      }
+
+      .hud .score {
+        display: flex;
+        gap: 12px;
+        font-size: 1rem;
+      }
+
+      .hud button {
+        border: none;
+        background: #3d5a80;
+        color: #f3f4f6;
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.15s ease;
+      }
+
+      .hud button:hover {
+        transform: translateY(-1px);
+        background: #5b7db5;
+      }
+
+      .canvas-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        color: #f4f9ff;
+        text-align: center;
+        padding: 20px;
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .overlay.visible {
+        pointer-events: auto;
+        opacity: 1;
+      }
+
+      .overlay h2 {
+        font-size: clamp(1.8rem, 2.4vw, 3rem);
+        margin-bottom: 14px;
+      }
+
+      .overlay p {
+        max-width: 520px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        color: #d7e2ff;
+      }
+
+      .overlay .hint {
+        font-size: 0.95rem;
+        color: #a9bff5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-shell">
+      <div class="hud">
+        <div class="title">Geometry Dash Clone</div>
+        <div class="score">
+          <span id="scoreLabel">Score: 0</span>
+          <span id="speedLabel">Speed: 6</span>
+        </div>
+        <button id="restartButton">Restart</button>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="gameCanvas" width="960" height="540"></canvas>
+        <div id="overlay" class="overlay visible">
+          <h2>Tap or press Space to jump</h2>
+          <p>Survive as long as you can while the obstacle course scrolls from right to left. The speed increases over time.</p>
+          <div class="hint">Click "Restart" or press Space to begin.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const scoreLabel = document.getElementById('scoreLabel');
+      const speedLabel = document.getElementById('speedLabel');
+      const restartButton = document.getElementById('restartButton');
+      const overlay = document.getElementById('overlay');
+
+      const gameWidth = canvas.width;
+      const gameHeight = canvas.height;
+      const groundHeight = 100;
+      const gravity = 0.8;
+      const jumpForce = -16;
+
+      let running = false;
+      let lastTime = 0;
+      let score = 0;
+      let speed = 6;
+      let colorPulse = 0;
+
+      const player = {
+        x: 120,
+        y: gameHeight - groundHeight - 60,
+        width: 54,
+        height: 54,
+        vy: 0,
+        onGround: true,
+      };
+
+      let obstacles = [];
+      let spawnTimer = 0;
+
+      function resetGame() {
+        running = false;
+        score = 0;
+        speed = 6;
+        player.y = gameHeight - groundHeight - player.height;
+        player.vy = 0;
+        player.onGround = true;
+        obstacles = [];
+        spawnTimer = 0;
+        overlay.classList.add('visible');
+        scoreLabel.textContent = 'Score: 0';
+        speedLabel.textContent = 'Speed: 6';
+      }
+
+      function startGame() {
+        if (running) return;
+        running = true;
+        overlay.classList.remove('visible');
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+      }
+
+      function gameOver() {
+        running = false;
+        overlay.innerHTML = `
+          <h2>Game Over</h2>
+          <p>Your score: ${Math.floor(score)}</p>
+          <div class="hint">Press Space or click Restart to try again.</div>
+        `;
+        overlay.classList.add('visible');
+      }
+
+      function jump() {
+        if (!player.onGround || !running) {
+          if (!running) startGame();
+          return;
+        }
+        player.vy = jumpForce;
+        player.onGround = false;
+      }
+
+      function createObstacle() {
+        const height = 50 + Math.random() * 80;
+        const gap = 140 + Math.random() * 60;
+        const y = gameHeight - groundHeight - height;
+        obstacles.push({ x: gameWidth + 40, y, width: 38 + Math.random() * 18, height });
+        spawnTimer = 0;
+      }
+
+      function update(delta) {
+        if (!running) return;
+        score += delta * 0.01;
+        speed += delta * 0.00008;
+        spawnTimer += delta;
+
+        const spawnInterval = Math.max(750 - speed * 20, 440);
+        if (spawnTimer > spawnInterval) {
+          createObstacle();
+        }
+
+        player.vy += gravity;
+        player.y += player.vy;
+
+        if (player.y + player.height >= gameHeight - groundHeight) {
+          player.y = gameHeight - groundHeight - player.height;
+          player.vy = 0;
+          player.onGround = true;
+        }
+
+        obstacles = obstacles.filter((obs) => obs.x + obs.width > -20);
+
+        for (const obs of obstacles) {
+          obs.x -= speed;
+          if (
+            player.x < obs.x + obs.width &&
+            player.x + player.width > obs.x &&
+            player.y < obs.y + obs.height &&
+            player.y + player.height > obs.y
+          ) {
+            gameOver();
+          }
+        }
+
+        scoreLabel.textContent = 'Score: ' + Math.floor(score);
+        speedLabel.textContent = 'Speed: ' + Math.floor(speed);
+      }
+
+      function drawBackground() {
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, gameHeight);
+        skyGradient.addColorStop(0, '#07101f');
+        skyGradient.addColorStop(1, '#09111f');
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, gameWidth, gameHeight);
+
+        ctx.fillStyle = '#102040';
+        for (let i = 0; i < 26; i++) {
+          const x = ((i * 210 + colorPulse * 3) % (gameWidth + 100)) - 100;
+          ctx.fillRect(x, gameHeight - groundHeight - 32, 120, 32);
+        }
+
+        ctx.fillStyle = '#16284a';
+        ctx.fillRect(0, gameHeight - groundHeight, gameWidth, groundHeight);
+
+        ctx.fillStyle = '#19305b';
+        ctx.fillRect(0, gameHeight - groundHeight + 18, gameWidth, 16);
+      }
+
+      function draw() {
+        drawBackground();
+
+        ctx.fillStyle = '#f9dc5c';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+
+        ctx.fillStyle = '#ee6c4d';
+        for (const obs of obstacles) {
+          ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        }
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 24px Inter, system-ui, sans-serif';
+        ctx.fillText('SPACE / TAP to jump', 28, 42);
+      }
+
+      function loop(timestamp) {
+        const delta = timestamp - lastTime;
+        lastTime = timestamp;
+        colorPulse += delta * 0.002;
+
+        update(delta);
+        draw();
+
+        if (running) {
+          requestAnimationFrame(loop);
+        }
+      }
+
+      window.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          jump();
+        }
+      });
+
+      window.addEventListener('pointerdown', () => {
+        jump();
+      });
+
+      restartButton.addEventListener('click', () => {
+        resetGame();
+        startGame();
+      });
+
+      resetGame();
+    </script>
+  </body>
+</html>
