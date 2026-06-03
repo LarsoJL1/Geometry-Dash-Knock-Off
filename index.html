@@ -216,20 +216,20 @@
       }
 
       function createObstacle() {
-        const height = 50 + Math.random() * 80;
-        const gap = 140 + Math.random() * 60;
+        const height = 40 + Math.random() * 40;
+        const width = 50 + Math.random() * 20;
         const y = gameHeight - groundHeight - height;
-        obstacles.push({ x: gameWidth + 40, y, width: 38 + Math.random() * 18, height });
+        obstacles.push({ x: gameWidth + 40, y, width, height });
         spawnTimer = 0;
       }
 
       function update(delta) {
         if (!running) return;
         score += delta * 0.01;
-        speed += delta * 0.00008;
+        speed += delta * 0.00005;
         spawnTimer += delta;
 
-        const spawnInterval = Math.max(750 - speed * 20, 440);
+        const spawnInterval = Math.max(900 - speed * 15, 620);
         if (spawnTimer > spawnInterval) {
           createObstacle();
         }
@@ -289,7 +289,12 @@
 
         ctx.fillStyle = '#ee6c4d';
         for (const obs of obstacles) {
-          ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+          ctx.beginPath();
+          ctx.moveTo(obs.x, obs.y + obs.height);
+          ctx.lineTo(obs.x + obs.width * 0.5, obs.y);
+          ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
+          ctx.closePath();
+          ctx.fill();
         }
 
         ctx.fillStyle = '#fff';
