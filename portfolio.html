@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Larson Jean-Louis - Portfolio</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding-bottom: 40px;
+      }
+
+      header {
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        font-size: 3em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .subtitle {
+        font-size: 1.2em;
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+
+      .contact-info {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        font-size: 0.95em;
+        margin-top: 15px;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .contact-item a {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+
+      .contact-item a:hover {
+        color: #fff;
+      }
+
+      main {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      section {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 2em;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .bio-content {
+        font-size: 1.1em;
+        line-height: 1.8;
+        color: #555;
+      }
+
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+      }
+
+      .project-card {
+        background: #f8f9fa;
+        border: 2px solid #667eea;
+        border-radius: 10px;
+        padding: 20px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+      }
+
+      .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .project-card h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+      }
+
+      .project-card p {
+        color: #666;
+        font-size: 0.95em;
+        margin-bottom: 15px;
+      }
+
+      .project-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #764ba2;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        overflow-y: auto;
+      }
+
+      .modal-content {
+        background-color: white;
+        margin: 30px auto;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 800px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+
+      .close:hover {
+        color: #000;
+      }
+
+      .modal h2 {
+        border: none;
+        color: #333;
+        margin-top: 0;
+      }
+
+      .code-viewer {
+        background: #f5f5f5;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+        line-height: 1.5;
+      }
+
+      .code-viewer pre {
+        margin: 0;
+      }
+
+      .preview-container {
+        border: 2px solid #667eea;
+        border-radius: 6px;
+        padding: 20px;
+        margin: 15px 0;
+        background: white;
+        min-height: 300px;
+      }
+
+      iframe {
+        width: 100%;
+        height: 500px;
+        border: none;
+        border-radius: 6px;
+        background: white;
+      }
+
+      .tech-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .tech-tag {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+      }
+
+      footer {
+        text-align: center;
+        color: white;
+        padding: 20px;
+        margin-top: 40px;
+      }
+
+      footer a {
+        color: #667eea;
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2em;
+        }
+
+        .contact-info {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        section {
+          padding: 25px;
+        }
+
+        h2 {
+          font-size: 1.5em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Larson Jean-Louis</h1>
+      <p class="subtitle">Developer & Coder</p>
+      <div class="contact-info">
+        <div class="contact-item">
+          📧 <a href="mailto:2706188@students.norwalkps.org">2706188@students.norwalkps.org</a>
+        </div>
+        <div class="contact-item">
+          📍 Norwalk, CT
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Bio Section -->
+      <section>
+        <h2>About Me</h2>
+        <div class="bio-content">
+          <p>
+            I'm a 17-year-old student passionate about coding and software development. I love creating interactive applications and exploring new programming languages. When I'm not coding, I'm training for track and field, which teaches me discipline and dedication.
+          </p>
+          <p style="margin-top: 15px;">
+            I'm always looking to expand my skills and take on new challenges in web development, game development, and data structures. This portfolio showcases some of my projects and code work.
+          </p>
+        </div>
+      </section>
+
+      <!-- Projects Section -->
+      <section>
+        <h2>Projects & Code</h2>
+        <p style="color: #666; margin-bottom: 25px;">
+          Click on any project to view the code and run it in your browser.
+        </p>
+
+        <div class="projects-grid">
+          <!-- Geometry Dash Project -->
+          <div class="project-card">
+            <h3>Geometry Dash Clone</h3>
+            <p>A fun arcade-style game with dual gamemodes. Navigate through obstacles in cube mode or rotate your ship to dodge fireballs. Features portals that switch between game modes.</p>
+            <div class="tech-tags">
+              <span class="tech-tag">HTML5</span>
+              <span class="tech-tag">Canvas</span>
+              <span class="tech-tag">JavaScript</span>
+            </div>
+            <div class="project-buttons">
+              <button onclick="viewProject('geometry-dash')">View Code</button>
+              <button onclick="runProject('geometry-dash')">Run Game</button>
+            </div>
+          </div>
+
+          <!-- Example Project Template -->
+          <div class="project-card">
+            <h3>Add Your Projects</h3>
+            <p>You can easily add more projects to this portfolio. Just follow the template and add new project cards with your code!</p>
+            <div class="tech-tags">
+              <span class="tech-tag">Template</span>
+            </div>
+            <div class="project-buttons">
+              <button onclick="alert('Edit portfolio.html to add your projects!')">Learn More</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Skills Section -->
+      <section>
+        <h2>Skills & Interests</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px;">
+          <div>
+            <h3 style="color: #667eea; margin-bottom: 10px;">Programming Languages</h3>
+            <ul style="list-style: none; line-height: 2;">
+              <li>✓ Java</li>
+              <li>✓ JavaScript</li>
+              <li>✓ HTML & CSS</li>
+              <li>✓ Python (Learning)</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="color: #667eea; margin-bottom: 10px;">Other Interests</h3>
+            <ul style="list-style: none; line-height: 2;">
+              <li>✓ Web Development</li>
+              <li>✓ Game Development</li>
+              <li>✓ Track & Field</li>
+              <li>✓ Problem Solving</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Project Modals -->
+    <div id="geometryModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeProject('geometry-dash')">&times;</span>
+        <h2>Geometry Dash Clone</h2>
+        <p>
+          This is an arcade-style game featuring two gamemodes with dynamic obstacle spawning and smooth physics.
+        </p>
+        <h3 style="color: #667eea; margin-top: 20px;">Features:</h3>
+        <ul style="margin-left: 20px; margin-bottom: 20px;">
+          <li><strong>Cube Mode:</strong> Jump over incoming triangular obstacles</li>
+          <li><strong>Ship Mode:</strong> Rotate your ship to dodge circular fireballs</li>
+          <li><strong>Portals:</strong> Random portals switch between game modes</li>
+          <li><strong>Difficulty Scaling:</strong> Speed increases as you progress</li>
+          <li><strong>Score Tracking:</strong> Real-time score and speed display</li>
+        </ul>
+        <h3 style="color: #667eea;">How to Play:</h3>
+        <p>
+          <strong>Cube Mode:</strong> Press Space or tap to jump over obstacles.<br>
+          <strong>Ship Mode:</strong> Use Arrow Up/Down or click to rotate your ship and navigate around fireballs.
+        </p>
+        <div style="margin-top: 20px;">
+          <button onclick="runProject('geometry-dash')" style="width: 100%; padding: 15px;">Play Game →</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>
+        💻 Portfolio Website | Designed & Built by Larson Jean-Louis<br>
+        <a href="https://github.com" target="_blank">GitHub</a> | 
+        <a href="mailto:2706188@students.norwalkps.org">Email</a>
+      </p>
+    </footer>
+
+    <script>
+      function viewProject(projectId) {
+        const modal = document.getElementById(projectId + 'Modal');
+        if (modal) {
+          modal.style.display = 'block';
+        }
+      }
+
+      function closeProject(projectId) {
+        const modal = document.getElementById(projectId + 'Modal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+      }
+
+      function runProject(projectId) {
+        if (projectId === 'geometry-dash') {
+          window.location.href = 'index.html';
+        }
+      }
+
+      window.onclick = function (event) {
+        if (event.target.classList.contains('modal')) {
+          event.target.style.display = 'none';
+        }
+      };
+    </script>
+  </body>
+</html>
