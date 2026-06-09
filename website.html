@@ -1,72 +1,267 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<title>Favorite Color</title>
-		<style>
-			body { font-family: Arial, sans-serif; padding: 2rem; }
-			label { display:block; margin-bottom:.5rem }
-			input[type="text"], input[type="color"] { padding:.4rem; font-size:1rem }
-			button { margin-top:1rem; padding:.5rem 1rem }
-			#message { margin-top:1rem }
-			ul { margin-top:1rem }
-		</style>
-	</head>
-	<body>
-		<h1>What's your favorite color?</h1>
-		<form id="colorForm">
-			<label for="colorPicker">Pick a color:</label>
-			<input id="colorPicker" type="color" value="#ff0000" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Favorite Color</title>
+    <style>
+      :root {
+        --bg: #0d1929;
+        --card: rgba(255, 255, 255, 0.08);
+        --card-border: rgba(255, 255, 255, 0.14);
+        --text: #f5f7ff;
+        --muted: #a3b1d1;
+        --accent: #6b86ff;
+        --success: #7dd28f;
+        --shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+      }
 
-			<label for="colorName">Or type a color name or hex:</label>
-			<input id="colorName" type="text" placeholder="e.g. teal or #00aaff" />
+      * {
+        box-sizing: border-box;
+      }
 
-			<div>
-				<button type="submit">Submit</button>
-				<button id="showSaved" type="button">Show saved colors</button>
-			</div>
-		</form>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', system-ui, sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at top left, rgba(107, 134, 255, 0.25), transparent 25%),
+          radial-gradient(circle at bottom right, rgba(123, 255, 185, 0.12), transparent 20%),
+          linear-gradient(180deg, #0e1a31 0%, #08101f 100%);
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+      }
 
-		<div id="message" role="status" aria-live="polite"></div>
-		<ul id="savedList"></ul>
+      .container {
+        width: min(560px, 100%);
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+        padding: 2.2rem 2rem;
+      }
 
-		<script>
-			const form = document.getElementById('colorForm');
-			const picker = document.getElementById('colorPicker');
-			const nameInput = document.getElementById('colorName');
-			const msg = document.getElementById('message');
-			const savedList = document.getElementById('savedList');
-			const showSaved = document.getElementById('showSaved');
+      .hero {
+        text-align: center;
+        margin-bottom: 1.75rem;
+      }
 
-			form.addEventListener('submit', async (e) => {
-				e.preventDefault();
-				const colorText = nameInput.value.trim() || picker.value;
-				if (!colorText) { msg.textContent = 'Please choose or enter a color.'; return }
-				try {
-					const res = await fetch('/favorite-color', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ color: colorText })
-					});
-					const data = await res.json();
-					if (!res.ok) throw new Error(data.error || 'Server error');
-					msg.textContent = `Saved: ${data.color}`;
-					nameInput.value = '';
-				} catch (err) {
-					msg.textContent = 'Error: ' + err.message;
-				}
-			});
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 2.5rem);
+        letter-spacing: -0.03em;
+      }
 
-			showSaved.addEventListener('click', async () => {
-				try {
-					const res = await fetch('/colors');
-					const rows = await res.json();
-					savedList.innerHTML = rows.map(r => `<li>${r.color} — ${new Date(r.created_at).toLocaleString()}</li>`).join('') || '<li>No colors saved yet</li>';
-				} catch (err) {
-					msg.textContent = 'Could not load saved colors';
-				}
-			});
-		</script>
-	</body>
+      .hero p {
+        margin: 0.85rem auto 0;
+        max-width: 38rem;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      form {
+        display: grid;
+        gap: 1rem;
+      }
+
+      label {
+        font-size: 0.95rem;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+
+      input[type='text'], input[type='color'] {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        padding: 0.95rem 1rem;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+
+      input[type='text']:focus,
+      input[type='color']:focus {
+        border-color: rgba(107, 134, 255, 0.55);
+        background: rgba(255, 255, 255, 0.11);
+      }
+
+      .color-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+        align-items: end;
+      }
+
+      .color-row input[type='color'] {
+        padding: 0.25rem;
+        width: 5rem;
+        height: 3rem;
+        border-radius: 16px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .actions button {
+        border: none;
+        border-radius: 14px;
+        padding: 0.95rem 1.3rem;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .actions button:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary {
+        background: linear-gradient(135deg, var(--accent), #738cff);
+        color: white;
+        box-shadow: 0 18px 35px rgba(107, 134, 255, 0.22);
+      }
+
+      .secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+      }
+
+      .message {
+        min-height: 2rem;
+        margin-top: 1rem;
+        padding: 1rem 1rem;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+      }
+
+      .saved-list {
+        margin: 1rem 0 0;
+        padding: 1rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .saved-list li {
+        margin-bottom: 0.85rem;
+        line-height: 1.5;
+      }
+
+      .saved-list li:last-child {
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="container">
+      <div class="hero">
+        <h1>Tell us your favorite color.</h1>
+        <p>Enter your name, choose a color, and we'll save it securely in the database.</p>
+      </div>
+
+      <form id="colorForm">
+        <div>
+          <label for="nameInput">Name</label>
+          <input id="nameInput" type="text" placeholder="Alex" autocomplete="name" />
+        </div>
+
+        <div class="color-row">
+          <div>
+            <label for="colorInput">Favorite color</label>
+            <input id="colorInput" type="text" placeholder="e.g. teal or #00aaff" autocomplete="off" />
+          </div>
+          <div>
+            <label for="colorPicker">Quick pick</label>
+            <input id="colorPicker" type="color" value="#6b86ff" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="primary">Save Favorite</button>
+          <button id="showSaved" type="button" class="secondary">Show Saved Favorites</button>
+        </div>
+      </form>
+
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+      <ul id="savedList" class="saved-list"></ul>
+    </section>
+
+    <script>
+      const form = document.getElementById('colorForm');
+      const nameInput = document.getElementById('nameInput');
+      const picker = document.getElementById('colorPicker');
+      const colorInput = document.getElementById('colorInput');
+      const msg = document.getElementById('message');
+      const savedList = document.getElementById('savedList');
+      const showSaved = document.getElementById('showSaved');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = nameInput.value.trim();
+        const colorText = colorInput.value.trim() || picker.value;
+
+        if (!name) {
+          msg.textContent = 'Please enter your name.';
+          msg.style.color = '#ffc7c7';
+          return;
+        }
+        if (!colorText) {
+          msg.textContent = 'Please choose or enter a color.';
+          msg.style.color = '#ffc7c7';
+          return;
+        }
+
+        try {
+          const res = await fetch('/favorite-color', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, color: colorText }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Server error');
+
+          msg.textContent = `Saved: ${data.name} — ${data.color}`;
+          msg.style.color = '#d7f6dd';
+          nameInput.value = '';
+          colorInput.value = '';
+        } catch (err) {
+          msg.textContent = 'Error: ' + err.message;
+          msg.style.color = '#ffc7c7';
+        }
+      });
+
+      showSaved.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/colors');
+          const rows = await res.json();
+          if (!Array.isArray(rows) || rows.length === 0) {
+            savedList.innerHTML = '<li>No favorites saved yet.</li>';
+            return;
+          }
+          savedList.innerHTML = rows
+            .map(
+              (r) =>
+                `<li><strong>${r.name}</strong>: ${r.color} <span style="color: ${r.color}; font-weight: 600;">●</span><br /><small>${new Date(r.created_at).toLocaleString()}</small></li>`
+            )
+            .join('');
+        } catch (err) {
+          msg.textContent = 'Could not load saved favorites';
+          msg.style.color = '#ffc7c7';
+        }
+      });
+    </script>
+  </body>
 </html>

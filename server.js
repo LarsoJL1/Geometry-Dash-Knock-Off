@@ -11,8 +11,9 @@ const db = new sqlite3.Database(DB_FILE, (err) => {
 });
 
 db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS colors (
+  db.run(`CREATE TABLE IF NOT EXISTS favorites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
     color TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
@@ -27,19 +28,23 @@ app.get('/', (req, res) => {
 });
 
 app.post('/favorite-color', (req, res) => {
+  const name = req.body.name;
   const color = req.body.color;
-  if (!color || typeof color !== 'string' || color.length > 100) {
+  if (!name || typeof name !== 'string' || name.trim().length === 0 || name.length > 100) {
+    return res.status(400).json({ error: 'Invalid name' });
+  }
+  if (!color || typeof color !== 'string' || color.trim().length === 0 || color.length > 100) {
     return res.status(400).json({ error: 'Invalid color' });
   }
-  const stmt = db.prepare('INSERT INTO colors (color) VALUES (?)');
-  stmt.run(color, function (err) {
+  const stmt = db.prepare('INSERT INTO favorites (name, color) VALUES (?, ?)');
+  stmt.run(name.trim(), color.trim(), function (err) {
     if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ id: this.lastID, color });
+    res.json({ id: this.lastID, name: name.trim(), color: color.trim() });
   });
 });
 
 app.get('/colors', (req, res) => {
-  db.all('SELECT id, color, created_at FROM colors ORDER BY created_at DESC LIMIT 100', (err, rows) => {
+  db.all('SELECT id, name, color, created_at FROM favorites ORDER BY created_at DESC LIMIT 100', (err, rows) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(rows);
   });

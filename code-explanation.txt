@@ -1,0 +1,49 @@
+This project has a simple frontend and backend that work together to save user names and favorite colors in a SQLite database.
+
+Files involved:
+- server.js
+- website.html
+- colors.db (created automatically)
+- package.json
+
+server.js
+----------
+- Uses Express to run a web server.
+- Uses SQLite to store data in a local file called colors.db.
+- When the server starts, it creates a table named favorites if it does not already exist.
+- It serves the website.html page at the root URL (/).
+- It accepts POST requests at /favorite-color with JSON data containing name and color.
+- It saves that data into the favorites table.
+- It also provides /colors to return the saved entries as JSON.
+
+website.html
+-------------
+- Shows a form where the user enters their name and favorite color.
+- The user can type a color or pick one with a color picker.
+- When the form is submitted, JavaScript sends the name and color to the server without refreshing the page.
+- If the request succeeds, the page shows a saved message.
+- There is also a button to load saved favorites from the database and display them.
+
+How it works together
+----------------------
+1. The browser loads website.html from the server.
+2. The user fills out the form and presses Submit.
+3. JavaScript sends a POST request to the backend with the entered name and color.
+4. The backend inserts that data into SQLite.
+5. Later, the browser can request /colors and see the saved list.
+
+Why it is simple
+----------------
+- No external database server is needed; SQLite stores data in one file.
+- The backend is small and only does two main tasks: save data and read saved data.
+- The frontend is just a single HTML page with a form and a little JavaScript.
+
+How to run it
+--------------
+1. Install dependencies:
+   npm install
+2. Start the server:
+   npm start
+3. Open http://localhost:3000/ in a browser.
+
+This makes it easy to try the app and see how the form data becomes saved entries in the database.
