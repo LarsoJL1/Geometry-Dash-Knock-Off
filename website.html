@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Favorite Color</title>
+		<style>
+			body { font-family: Arial, sans-serif; padding: 2rem; }
+			label { display:block; margin-bottom:.5rem }
+			input[type="text"], input[type="color"] { padding:.4rem; font-size:1rem }
+			button { margin-top:1rem; padding:.5rem 1rem }
+			#message { margin-top:1rem }
+			ul { margin-top:1rem }
+		</style>
+	</head>
+	<body>
+		<h1>What's your favorite color?</h1>
+		<form id="colorForm">
+			<label for="colorPicker">Pick a color:</label>
+			<input id="colorPicker" type="color" value="#ff0000" />
+
+			<label for="colorName">Or type a color name or hex:</label>
+			<input id="colorName" type="text" placeholder="e.g. teal or #00aaff" />
+
+			<div>
+				<button type="submit">Submit</button>
+				<button id="showSaved" type="button">Show saved colors</button>
+			</div>
+		</form>
+
+		<div id="message" role="status" aria-live="polite"></div>
+		<ul id="savedList"></ul>
+
+		<script>
+			const form = document.getElementById('colorForm');
+			const picker = document.getElementById('colorPicker');
+			const nameInput = document.getElementById('colorName');
+			const msg = document.getElementById('message');
+			const savedList = document.getElementById('savedList');
+			const showSaved = document.getElementById('showSaved');
+
+			form.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const colorText = nameInput.value.trim() || picker.value;
+				if (!colorText) { msg.textContent = 'Please choose or enter a color.'; return }
+				try {
+					const res = await fetch('/favorite-color', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ color: colorText })
+					});
+					const data = await res.json();
+					if (!res.ok) throw new Error(data.error || 'Server error');
+					msg.textContent = `Saved: ${data.color}`;
+					nameInput.value = '';
+				} catch (err) {
+					msg.textContent = 'Error: ' + err.message;
+				}
+			});
+
+			showSaved.addEventListener('click', async () => {
+				try {
+					const res = await fetch('/colors');
+					const rows = await res.json();
+					savedList.innerHTML = rows.map(r => `<li>${r.color} — ${new Date(r.created_at).toLocaleString()}</li>`).join('') || '<li>No colors saved yet</li>';
+				} catch (err) {
+					msg.textContent = 'Could not load saved colors';
+				}
+			});
+		</script>
+	</body>
+</html>
