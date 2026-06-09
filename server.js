@@ -36,10 +36,16 @@ app.post('/favorite-color', (req, res) => {
   if (!color || typeof color !== 'string' || color.trim().length === 0 || color.length > 100) {
     return res.status(400).json({ error: 'Invalid color' });
   }
-  const stmt = db.prepare('INSERT INTO favorites (name, color) VALUES (?, ?)');
-  stmt.run(name.trim(), color.trim(), function (err) {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ id: this.lastID, name: name.trim(), color: color.trim() });
+
+  const trimmedName = name.trim();
+  const trimmedColor = color.trim();
+
+  db.run('INSERT INTO favorites (name, color) VALUES (?, ?)', [trimmedName, trimmedColor], function (err) {
+    if (err) {
+      console.error('SQLite insert error:', err);
+      return res.status(500).json({ error: err.message || 'DB error' });
+    }
+    res.json({ id: this.lastID, name: trimmedName, color: trimmedColor });
   });
 });
 

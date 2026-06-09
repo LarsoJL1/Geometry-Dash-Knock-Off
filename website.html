@@ -208,6 +208,13 @@
       const savedList = document.getElementById('savedList');
       const showSaved = document.getElementById('showSaved');
 
+      if (window.location.protocol === 'file:') {
+        msg.textContent = 'Warning: Open this page through the server at http://localhost:3000/ instead of using a local file URL.';
+        msg.style.color = '#ffc7c7';
+        form.querySelector('button[type="submit"]').disabled = true;
+        form.querySelector('button[type="submit"]').style.opacity = '0.6';
+      }
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = nameInput.value.trim();
